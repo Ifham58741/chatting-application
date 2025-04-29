@@ -10,12 +10,13 @@ pids
 *.pid
 *.seed
 
-# OS-specific
+# OS-spec.env
+ific
 .DS_Store
 Thumbs.db
 
 # Env files
-.env
+
 
 # Build
 dist/
