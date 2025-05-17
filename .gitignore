@@ -1,0 +1,34 @@
+# Node modules
+node_modules/
+
+# Logs
+logs
+*.log
+
+# Runtime data
+pids
+*.pid
+*.seed
+
+# OS-spec.env
+ific
+.DS_Store
+Thumbs.db
+
+# Env files
+
+
+# Build
+dist/
+build/
+
+# IDEs/editors
+.vscode/
+.idea/
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+
+# Optional npm cache directory
+.npm

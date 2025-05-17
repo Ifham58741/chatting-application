@@ -1,0 +1,277 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Real-Time Chat</title>
+    <link rel="stylesheet" href="/css/style.css">
+    <!-- Basic Favicon -->
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>💬</text></svg>">
+</head>
+<body>
+    <!-- Loading Overlay -->
+    <div id="loading-overlay">
+        <div class="spinner"></div>
+        <span>Loading...</span>
+    </div>
+
+    <!-- App Container -->
+    <div id="app-container">
+
+        <!-- ===================== -->
+        <!-- Authentication Section -->
+        <!-- ===================== -->
+        <div id="auth-container">
+            <h1>Welcome to ChatApp</h1>
+
+            <!-- General Auth Error Area -->
+            <div id="auth-error-general" class="message-box error"></div>
+
+            <!-- Login View -->
+            <div id="login-view">
+                <h2>Login</h2>
+                <form id="login-form" novalidate> <!-- Disable browser validation, rely on JS/server -->
+                    <div class="message-box error"></div> <!-- Form-specific error -->
+                    <div class="message-box success"></div> <!-- Form-specific success -->
+                    <div class="form-group">
+                        <label for="login-email">Email:</label>
+                        <input type="email" id="login-email" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="login-password">Password:</label>
+                        <input type="password" id="login-password" required>
+                    </div>
+                    <button type="submit">Login</button>
+                </form>
+                <p class="auth-toggle-link">
+                    <a href="#" data-view="forgot-password-view">Forgot Password?</a> |
+                    Don't have an account? <a href="#" data-view="register-view">Register</a>
+                </p>
+            </div>
+
+            <!-- Registration View -->
+            <div id="register-view">
+                 <h2>Register</h2>
+                 <form id="register-form" novalidate>
+                    <div class="message-box error"></div>
+                    <div class="message-box success"></div>
+                    <div class="form-group">
+                         <label for="register-username">Username:</label>
+                         <input type="text" id="register-username" required minlength="3" maxlength="20" pattern="^[a-zA-Z0-9_-]+$">
+                         <small>3-20 chars, letters, numbers, _, -</small>
+                    </div>
+                    <div class="form-group">
+                         <label for="register-email">Email:</label>
+                         <input type="email" id="register-email" required>
+                    </div>
+                    <div class="form-group">
+                         <label for="register-password">Password:</label>
+                         <input type="password" id="register-password" required minlength="6">
+                         <small>Minimum 6 characters</small>
+                    </div>
+                    <button type="submit">Register</button>
+                 </form>
+                 <p class="auth-toggle-link">
+                     Already have an account? <a href="#" data-view="login-view">Login</a>
+                 </p>
+            </div>
+
+            <!-- Forgot Password View -->
+            <div id="forgot-password-view">
+                <h2>Forgot Password</h2>
+                 <form id="forgot-password-form" novalidate>
+                    <div class="message-box error"></div>
+                    <div class="message-box success"></div>
+                    <p>Enter your email address and we'll send you a link to reset your password.</p>
+                    <div class="form-group">
+                         <label for="forgot-email">Email:</label>
+                         <input type="email" id="forgot-email" required>
+                    </div>
+                    <button type="submit">Send Reset Link</button>
+                 </form>
+                 <p class="auth-toggle-link">
+                      Remembered your password? <a href="#" data-view="login-view">Login</a>
+                 </p>
+            </div>
+
+            <!-- Reset Password View -->
+            <div id="reset-password-view">
+                 <h2>Reset Password</h2>
+                  <form id="reset-password-form" novalidate>
+                     <div class="message-box error"></div>
+                     <div class="message-box success"></div>
+                     <!-- Token is added here by JS if found in URL -->
+                     <input type="hidden" id="reset-token" value="">
+                     <p>Enter your new password below.</p>
+                     <div class="form-group">
+                          <label for="reset-password">New Password:</label>
+                          <input type="password" id="reset-password" required minlength="6">
+                          <small>Minimum 6 characters</small>
+                     </div>
+                     <button type="submit">Reset Password</button>
+                  </form>
+                  <p class="auth-toggle-link">
+                       <a href="#" data-view="login-view">Back to Login</a>
+                  </p>
+            </div>
+
+        </div><!-- /#auth-container -->
+
+
+        <!-- ================= -->
+        <!-- Main Chat Area -->
+        <!-- ================= -->
+        <div id="chat-container">
+            <!-- Header -->
+            <header id="chat-header">
+                <h1>ChatApp</h1>
+                <div id="user-info-header">
+                    <!-- Click avatar to open profile modal -->
+                    <img id="user-avatar-header" src="/uploads/avatars/default.png" alt="Your Avatar" title="Edit Profile & Status">
+                    <span id="username-header">Username</span>
+                    <button id="logout-button" type="button">Logout</button>
+                </div>
+            </header>
+
+            <!-- Main Content (Sidebar + Chat Window) -->
+            <main id="main-content">
+                <!-- ============ -->
+                <!-- Sidebar     -->
+                <!-- ============ -->
+                <aside id="sidebar">
+                    <!-- Room Management -->
+                    <section id="room-management">
+                         <h2>Public Rooms</h2>
+                         <ul id="room-list" class="sidebar-list" aria-label="Public Rooms">
+                             <!-- Populated by JS -->
+                             <!-- Example: <li data-room-id="general" data-chat-type="room" class="active-item">general</li> -->
+                         </ul>
+                         <form id="join-room-form" action="#">
+                            <label for="room-name-input" class="sr-only">Room Name</label> <!-- Screen reader label -->
+                            <input type="text" id="room-name-input" placeholder="Enter room name (a-z0-9-_)" maxlength="20" minlength="3">
+                            <button id="join-room-button" type="button">Join / Create</button>
+                            <p id="room-error" role="alert"></p> <!-- Aria role for errors -->
+                         </form>
+                    </section>
+
+                    <!-- Direct Messages -->
+                    <section id="dm-management">
+                         <h2>Direct Messages</h2>
+                         <ul id="dm-list" class="sidebar-list" aria-label="Direct Messages">
+                             <!-- Populated by JS -->
+                             <!-- Example: <li data-room-id="dm-xyz" data-chat-type="dm" data-user-id="abc"><img class="dm-avatar" src="..."><span>OtherUser</span></li> -->
+                         </ul>
+                    </section>
+
+                    <!-- User List (Current Public Room) -->
+                    <section id="user-management">
+                        <h2>Online (<span id="online-count">0</span>)</h2>
+                        <ul id="user-list" class="sidebar-list" aria-label="Users in Current Room">
+                            <!-- Populated by JS for the current room -->
+                            <!-- Example: <li data-user-id="123" class="is-self"><img class="user-avatar"><span class="user-status online"></span><span class="username">YourUsername</span></li> -->
+                        </ul>
+                    </section>
+                </aside>
+
+                <!-- ============= -->
+                <!-- Chat Window  -->
+                <!-- ============= -->
+                <section id="chat-window" aria-live="polite" aria-atomic="false">
+                    <header id="current-chat-header">
+                        <img id="current-chat-avatar" class="chat-avatar" src="" alt="" style="display: none;">
+                        <h2>Chat: <span id="current-chat-name">None</span></h2>
+                    </header>
+
+                    <!-- Message display area -->
+                    <ul id="messages" aria-label="Chat Messages">
+                        <!-- Placeholder shown/hidden by JS -->
+                         <p id="no-chat-message" style="display: flex;">Select a room or conversation to start chatting.</p>
+                         <!-- Messages populated by JS -->
+                         <!-- Example: <li class="message user-message"><div class="message-header">...</div><div class="message-content">...</div></li> -->
+                    </ul>
+
+                    <!-- Typing indicator area -->
+                    <div id="typing-indicator" aria-live="polite"></div> <!-- Announce typing changes -->
+
+                    <!-- Message Input Form -->
+                    <form id="message-form" action="#">
+                        <label for="message-input" class="sr-only">Message Input</label> <!-- Screen reader label -->
+                        <input id="message-input" type="text" autocomplete="off" placeholder="Select a conversation..." aria-label="Type your message" required disabled />
+                        <button type="submit" aria-label="Send Message" disabled>Send</button>
+                    </form>
+                </section>
+            </main>
+
+             <!-- Footer -->
+             <footer id="connection-status">
+                 Status: <span id="status-indicator">Initializing...</span>
+             </footer>
+
+        </div> <!-- /#chat-container -->
+
+
+        <!-- ===================== -->
+        <!-- Profile Modal        -->
+        <!-- ===================== -->
+        <div id="profile-modal" class="modal" role="dialog" aria-labelledby="profile-modal-title" aria-modal="true">
+            <div class="modal-content">
+                <button id="close-profile-modal" class="close-button" aria-label="Close Profile Modal">&times;</button>
+                <h2 id="profile-modal-title">Your Profile & Status</h2>
+
+                <div id="profile-info">
+                    <div id="profile-avatar-container">
+                        <img id="profile-avatar" src="/uploads/avatars/default.png" alt="Your Avatar">
+                    </div>
+                    <div id="profile-details">
+                        <p><strong>Username:</strong> <span id="profile-username"></span></p>
+                        <p><strong>Email:</strong> <span id="profile-email"></span></p>
+                        <p><strong>Joined:</strong> <span id="profile-joined"></span></p>
+                        <p><strong>Last Seen:</strong> <span id="profile-last-seen"></span></p>
+                        <p><strong>Status Message:</strong> <span id="profile-status-message"></span></p>
+                    </div>
+                </div>
+
+                 <!-- Status Update Form -->
+                 <form id="status-update-form">
+                     <h3>Update Status</h3>
+                     <div class="message-box" id="status-update-message"></div> <!-- Status Update Feedback -->
+                     <div id="status-update-fields" class="form-group">
+                        <label for="status-select">Status:</label>
+                        <select id="status-select">
+                            <option value="online">Online</option>
+                            <option value="away">Away</option>
+                            <option value="dnd">Do Not Disturb</option>
+                            <!-- Offline is usually handled automatically by disconnect -->
+                        </select>
+                        <label for="status-message-input" class="sr-only">Status Message</label>
+                        <input type="text" id="status-message-input" placeholder="Set a status message (optional)" maxlength="60">
+                        <button type="submit">Set</button>
+                     </div>
+                 </form>
+
+                <!-- Avatar Upload Form -->
+                <form id="avatar-upload-form">
+                    <h3>Change Avatar</h3>
+                    <div class="message-box" id="avatar-upload-message"></div> <!-- Avatar Upload Feedback -->
+                    <div class="form-group">
+                        <label for="avatar-file-input">Select Image (Max 1MB, JPG/PNG/GIF/WEBP):</label>
+                        <input type="file" id="avatar-file-input" name="avatar" accept="image/png, image/jpeg, image/gif, image/webp">
+                    </div>
+                    <button type="submit">Upload Avatar</button>
+                </form>
+
+                <!-- Placeholder for Password Change Form -->
+                <!-- Add later if needed, linking to /api/auth/updatepassword -->
+
+            </div>
+        </div>
+
+
+    </div> <!-- /#app-container -->
+
+    <!-- Libraries -->
+    <script src="/socket.io/socket.io.js"></script>
+    <!-- Custom Client Script -->
+    <script src="/js/client.js"></script>
+</body>
+</html>
